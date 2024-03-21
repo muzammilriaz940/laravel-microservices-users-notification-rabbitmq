@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      retries: 10
+
   users-service:
     build:
       context: ./users-service
@@ -9,18 +19,20 @@ services:
       - "9000:9000"
     volumes:
       - ./users-service:/var/www/html
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: ["sh", "-c", "php artisan test && php-fpm"]
 
   notifications-service:
     build:
       context: ./notifications-service
       dockerfile: Dockerfile
     ports:
-      - "9001:9000"
+      - "9001:9001"
     volumes:
       - ./notifications-service:/var/www/html
-  
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: ["sh", "-c", "php artisan test && php artisan queue:work rabbitmq"]

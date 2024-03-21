@@ -17,7 +17,3 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Install PHP dependencies
 RUN composer install
-
-# Expose port 9000 and start php-fpm
-EXPOSE 9000
-CMD ["php-fpm"]
